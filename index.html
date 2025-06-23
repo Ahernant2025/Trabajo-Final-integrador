@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Próximo Feriado Argentina</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Bienvenido a la App de Feriados</h1>
+        <div id="login-section">
+            <form id="login-form">
+                <label for="password">Contraseña:</label>
+                <input type="password" id="password" required>
+                <button type="submit">Ingresar</button>
+            </form>
+            <p id="login-message" class="error-message"></p>
+        </div>
+
+        <div id="feriado-section" style="display:none;">
+            <h2>Próximo Feriado</h2>
+            <p id="feriado-nombre">Cargando...</p>
+            <p id="feriado-fecha"></p>
+            <p id="feriado-tipo"></p>
+            <button id="logout-button">Cerrar Sesión</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
