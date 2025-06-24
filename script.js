@@ -13,7 +13,7 @@ const logoutButton = document.getElementById('logout-button');
 // Define tu contraseña secreta aquí. Puedes cambiarla si quieres.
 // Ojo: Para tu trabajo final, podrías necesitar integrar la función validarSecreto() del profesor
 // Si usas la contraseña fija, la cambiarías aquí:
-const CORRECT_PASSWORD = 'seguridad'; 
+const CORRECT_PASSWORD = 'Toledo-889'; 
 
 // --- 2. Función de Autenticación ---
 function handleLogin(event) {
@@ -22,7 +22,7 @@ function handleLogin(event) {
 
     const enteredPassword = passwordInput.value; // Obtiene la contraseña ingresada por el usuario
 
-    if (enteredPassword === CORRECT_PASSWORD) {
+    if (enteredPassword.toLowerCase() === CORRECT_PASSWORD.toLowerCase()) {
         // Si la contraseña es correcta, ocultamos la sección de login y mostramos la de feriado
         loginSection.style.display = 'none';
         feriadoSection.style.display = 'block';
