@@ -1,85 +1,84 @@
+// --- Importaciones de las funciones del profesor ---
+import { validarSecreto } from 'https://desarrollo-aplicaciones.vercel.app/2024/code/validar-secreto.js';
+import { calcularProximoFeriado } from 'https://desarrollo-aplicaciones.vercel.app/2024/code/calcular-proximo-feriado.js';
+
 // --- 1. Constantes y elementos del DOM ---
-// Aquí guardamos referencias a los elementos HTML con los que vamos a interactuar
 const loginForm = document.getElementById('login-form');
-const passwordInput = document.getElementById('password');
+const dniInput = document.getElementById('dni');
+const palabraSecretaInput = document.getElementById('palabra-secreta');
 const loginMessage = document.getElementById('login-message');
 const loginSection = document.getElementById('login-section');
 const feriadoSection = document.getElementById('feriado-section');
-const feriadoNombre = document.getElementById('feriado-nombre');
-const feriadoFecha = document.getElementById('feriado-fecha');
-const feriadoTipo = document.getElementById('feriado-tipo');
+const feriadoInfo = document.getElementById('feriado-info');
 const logoutButton = document.getElementById('logout-button');
 
-// Define tu contraseña secreta aquí. Puedes cambiarla si quieres.
-// Ojo: Para tu trabajo final, podrías necesitar integrar la función validarSecreto() del profesor
-// Si usas la contraseña fija, la cambiarías aquí:
-const CORRECT_PASSWORD = 'Toledo-889'; 
-
 // --- 2. Función de Autenticación ---
-function handleLogin(event) {
-    // Evita que el formulario se envíe de la manera tradicional y recargue la página
-    event.preventDefault(); 
+async function handleLogin(event) {
+    event.preventDefault();
+    const dniValue = dniInput.value;
+    const secretoValue = palabraSecretaInput.value;
+    loginMessage.textContent = 'Validando...';
 
-    const enteredPassword = passwordInput.value; // Obtiene la contraseña ingresada por el usuario
-
-    if (enteredPassword.toLowerCase() === CORRECT_PASSWORD.toLowerCase()) {
-        // Si la contraseña es correcta, ocultamos la sección de login y mostramos la de feriado
-        loginSection.style.display = 'none';
-        feriadoSection.style.display = 'block';
-        loginMessage.textContent = ''; // Limpiamos cualquier mensaje de error anterior
-        fetchFeriado(); // Llamamos a la función para obtener los datos del feriado
-    } else {
-        // Si la contraseña es incorrecta, mostramos un mensaje de error
-        loginMessage.textContent = 'Contraseña incorrecta. Intenta de nuevo.';
-        passwordInput.value = ''; // Limpiamos el campo de la contraseña
+    try {
+        const esValido = await validarSecreto(dniValue, secretoValue);
+        if (esValido) {
+            loginSection.style.display = 'none';
+            feriadoSection.style.display = 'block';
+            loginMessage.textContent = '';
+            fetchAndDisplayFeriado();
+        } else {
+            throw new Error('DNI o Palabra Secreta incorrectos.');
+        }
+    } catch (error) {
+        loginMessage.textContent = error.message;
+        palabraSecretaInput.value = '';
     }
 }
 
 // --- 3. Función para Cerrar Sesión ---
 function handleLogout() {
-    // Oculta la sección del feriado y muestra la de login
     feriadoSection.style.display = 'none';
     loginSection.style.display = 'block';
-    passwordInput.value = ''; // Limpia el campo de contraseña
-    loginMessage.textContent = ''; // Limpia cualquier mensaje
-    feriadoNombre.textContent = 'Cargando...'; // Restablece el mensaje de carga
-    feriadoFecha.textContent = '';
-    feriadoTipo.textContent = '';
+    dniInput.value = '';
+    palabraSecretaInput.value = '';
+    loginMessage.textContent = '';
 }
 
-// --- 4. Función para Obtener Datos del Feriado (desde una API) ---
-async function fetchFeriado() {
-    // URL de la API de feriados argentinos
-    const API_URL = 'https://nolaborables.com.ar/api/v2/next?country=Argentina';
-    
+// --- 4. Función para Obtener y Mostrar Feriado ---
+async function fetchAndDisplayFeriado() {
+    const API_URL = 'https://api.argentinadatos.com/v1/feriados/';
+    feriadoInfo.innerHTML = '<h2>Próximo Feriado</h2><p>Cargando...</p>';
+
     try {
-        const response = await fetch(API_URL); // Realiza la petición a la API
-        if (!response.ok) {
-            // Si la respuesta no es exitosa (ej. error 404, 500), lanzamos un error
-            throw new Error(`Error HTTP: ${response.status}`);
-        }
-        const data = await response.json(); // Convierte la respuesta a formato JSON
-        
-        // Verificamos si la API devolvió un feriado
-        if (data && data.nombre && data.fecha && data.tipo) {
-            feriadoNombre.textContent = `Nombre: ${data.nombre}`;
-            feriadoFecha.textContent = `Fecha: ${data.fecha}`;
-            feriadoTipo.textContent = `Tipo: ${data.tipo}`;
+        // Hacemos un fetch para obtener la lista de todos los feriados
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error(`Error de red: ${response.status}`);
+
+        const feriados = await response.json();
+        // Usamos la función del profesor para encontrar el próximo feriado de la lista
+        const proximoFeriado = calcularProximoFeriado(feriados);
+
+        if (proximoFeriado) {
+            // Formateamos la fecha para que se vea mejor (DD/MM/AAAA)
+            const [year, month, day] = proximoFeriado.fecha.split('-');
+            const fechaFormateada = `${day}/${month}/${year}`;
+
+            // Mostramos la información en pantalla
+            feriadoInfo.innerHTML = `
+                <h2>Próximo Feriado en Argentina</h2>
+                <p><strong>Motivo:</strong> ${proximoFeriado.motivo}</p>
+                <p><strong>Fecha:</strong> ${fechaFormateada}</p>
+                <p><strong>Tipo:</strong> ${proximoFeriado.tipo}</p>
+            `;
         } else {
-            feriadoNombre.textContent = 'No se encontró información del próximo feriado.';
-            feriadoFecha.textContent = '';
-            feriadoTipo.textContent = '';
+            throw new Error('No se pudo determinar el próximo feriado.');
         }
     } catch (error) {
-        // Captura cualquier error que ocurra durante la petición o el procesamiento
-        console.error('Hubo un problema al obtener el feriado:', error);
-        feriadoNombre.textContent = 'Error al cargar el feriado. Intenta más tarde.';
-        feriadoFecha.textContent = '';
-        feriadoTipo.textContent = '';
+        console.error('Error al procesar feriados:', error);
+        feriadoInfo.innerHTML = '<h2>Error</h2><p>No se pudo cargar la información del feriado.</p>';
     }
 }
 
-// --- 5. Event Listeners (Escuchadores de eventos) ---
-// Estos son los que "escuchan" cuándo ocurren ciertas acciones
-loginForm.addEventListener('submit', handleLogin); // Cuando se envía el formulario de login
-logoutButton.addEventListener('click', handleLogout); // Cuando se hace clic en el botón de cerrar sesión
+// --- 5. Event Listeners ---
+loginForm.addEventListener('submit', handleLogin);
+logoutButton.addEventListener('click', handleLogout);
