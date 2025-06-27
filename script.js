@@ -50,23 +50,20 @@ async function fetchAndDisplayFeriado() {
     feriadoInfo.innerHTML = '<h2>Próximo Feriado</h2><p>Cargando...</p>';
 
     try {
-        // Hacemos un fetch para obtener la lista de todos los feriados
         const response = await fetch(API_URL);
         if (!response.ok) throw new Error(`Error de red: ${response.status}`);
 
         const feriados = await response.json();
-        // Usamos la función del profesor para encontrar el próximo feriado de la lista
         const proximoFeriado = calcularProximoFeriado(feriados);
 
         if (proximoFeriado) {
-            // Formateamos la fecha para que se vea mejor (DD/MM/AAAA)
             const [year, month, day] = proximoFeriado.fecha.split('-');
             const fechaFormateada = `${day}/${month}/${year}`;
 
-            // Mostramos la información en pantalla
+            // CORRECCIÓN FINAL: Usamos .nombre que es el campo correcto de la API
             feriadoInfo.innerHTML = `
                 <h2>Próximo Feriado en Argentina</h2>
-                <p><strong>Motivo:</strong> ${proximoFeriado.motivo}</p>
+                <p><strong>Motivo:</strong> ${proximoFeriado.nombre}</p> 
                 <p><strong>Fecha:</strong> ${fechaFormateada}</p>
                 <p><strong>Tipo:</strong> ${proximoFeriado.tipo}</p>
             `;
